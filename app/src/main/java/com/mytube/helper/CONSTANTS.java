@@ -5,4 +5,5 @@ package com.mytube.helper;
  */
 public class CONSTANTS {
     public static String USER_ACCESS_TOKEN = null;
+    public static String YOUTUBE_API_KEY = "AIzaSyDPYETsPLefRFIQO3OlmnLf2m1bQ8YF7NA";
 }

@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
@@ -17,6 +18,9 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.auth.GoogleAuthException;
+import com.google.android.gms.auth.GoogleAuthUtil;
+import com.google.android.gms.auth.UserRecoverableAuthException;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.SignInButton;
@@ -27,6 +31,8 @@ import com.google.android.gms.plus.model.people.Person;
 import com.google.api.services.youtube.YouTubeScopes;
 import com.mytube.R;
 import com.mytube.helper.CONSTANTS;
+
+import java.io.IOException;
 
 
 /**
@@ -39,6 +45,8 @@ public class SigninActivity extends AppCompatActivity implements
         GoogleApiClient.OnConnectionFailedListener {
 
     private static final String TAG = "SigninActivity";
+
+    private static final int REQ_SIGN_IN_REQUIRED = 55664;
 
     /* RequestCode for resolutions involving sign-in */
     private static final int RC_SIGN_IN = 1;
@@ -121,7 +129,7 @@ public class SigninActivity extends AppCompatActivity implements
                 if (checkAccountsPermission()) {
                     currentAccount = Plus.AccountApi.getAccountName(mGoogleApiClient);
                     ((TextView) findViewById(R.id.email)).setText(currentAccount);
-                    CONSTANTS.USER_ACCESS_TOKEN = currentAccount;
+                    new RetrieveTokenTask().execute(currentAccount);
                 }
             } else {
                 // If getCurrentPerson returns null there is generally some error with the
@@ -182,7 +190,6 @@ public class SigninActivity extends AppCompatActivity implements
 
     private void showSignedInUI() {
         updateUI(true);
-        openMyTubePlayer();
     }
 
     private void showSignedOutUI() {
@@ -227,6 +234,11 @@ public class SigninActivity extends AppCompatActivity implements
             }
             mIsResolving = false;
             mGoogleApiClient.connect();
+        }
+
+        if (requestCode == REQ_SIGN_IN_REQUIRED && resultCode == RESULT_OK) {
+            // We had to sign in - now we can finish off the token request.
+            new RetrieveTokenTask().execute(currentAccount);
         }
 
     }
@@ -390,6 +402,34 @@ public class SigninActivity extends AppCompatActivity implements
                 startActivity(newIntent);
             }
         });
+    }
+
+    private class RetrieveTokenTask extends AsyncTask<String, Void, String> {
+
+        @Override
+        protected String doInBackground(String... params) {
+            String accountName = params[0];
+            String scopes = "oauth2:profile email";
+            String token = null;
+            try {
+                token = GoogleAuthUtil.getToken(getApplicationContext(), accountName, scopes);
+            } catch (IOException e) {
+                Log.e(TAG, e.getMessage());
+            } catch (UserRecoverableAuthException e) {
+                startActivityForResult(e.getIntent(), REQ_SIGN_IN_REQUIRED);
+            } catch (GoogleAuthException e) {
+                Log.e(TAG, e.getMessage());
+            }
+            return token;
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+            CONSTANTS.USER_ACCESS_TOKEN = s;
+            Log.d(TAG,"Token: "+s);
+            openMyTubePlayer();
+        }
     }
 
 }

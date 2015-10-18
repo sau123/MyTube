@@ -3,11 +3,13 @@ package com.mytube.helper;
 import android.content.Context;
 import android.util.Log;
 
-import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
+import com.google.api.client.googleapis.extensions.android.gms.auth.UserRecoverableAuthIOException;
+import com.google.api.client.http.HttpHeaders;
+import com.google.api.client.http.HttpRequest;
+import com.google.api.client.http.HttpRequestInitializer;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.youtube.YouTube;
-import com.google.api.services.youtube.YouTubeScopes;
 import com.google.api.services.youtube.model.Playlist;
 import com.google.api.services.youtube.model.PlaylistListResponse;
 import com.google.api.services.youtube.model.PlaylistSnippet;
@@ -20,33 +22,26 @@ import java.util.List;
 
 public class YoutubePlaylistConnector {
 
-    GoogleAccountCredential credential;
     private final String TAG = "YCP";
     private YouTube youtube;
     private YouTube.Playlists.List queryPlaylist;
     private YouTube.Playlists.Insert queryCreatePlaylist;
     public static final String KEY
-            = "AIzaSyBBHbRhe57X9dCkyRvWqVV4pX_BU4MZCpA";
+            = CONSTANTS.YOUTUBE_API_KEY;
 
     public YoutubePlaylistConnector(Context context) {
 
 
-        // Google Accounts
-
-        credential = GoogleAccountCredential.usingOAuth2(context, YouTubeScopes.all());
-
-        credential.setSelectedAccountName(CONSTANTS.USER_ACCESS_TOKEN);
-        Log.d(TAG,"NAME"+CONSTANTS.USER_ACCESS_TOKEN);
         youtube = new YouTube.Builder(new NetHttpTransport(),
-                new JacksonFactory(), credential).setApplicationName(context.getString(R.string.app_name)).build();
+                new JacksonFactory(), new HttpRequestInitializer() {
+            @Override
+            public void initialize(HttpRequest hr) throws IOException {
+                HttpHeaders hh = new HttpHeaders();
 
-        try{
-            queryPlaylist = youtube.playlists().list("id,snippet");
-            queryPlaylist.setKey(KEY);
-            queryPlaylist.setFields("id,snippet");
-        }catch(IOException e){
-            Log.d(TAG, "Could not initialize: " + e);
-        }
+                hh.setAuthorization("Bearer "+CONSTANTS.USER_ACCESS_TOKEN);
+                hr.setHeaders(hh);
+            }
+        }).setApplicationName(context.getString(R.string.app_name)).build();
     }
 
     public List<VideoItem> createPlaylist(String playlistName){
@@ -64,6 +59,8 @@ public class YoutubePlaylistConnector {
             Playlist response = queryCreatePlaylist.execute();
             Log.d("Query Result ", response.toString());
 
+        } catch (UserRecoverableAuthIOException e){
+            Log.d(TAG, e.getIntent().getPackage());
         } catch (IOException e) {
             Log.d(TAG, "Could not create: " + e);
             return null;
