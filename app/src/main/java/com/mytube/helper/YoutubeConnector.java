@@ -78,12 +78,6 @@ public class YoutubeConnector {
 
             List<Video> results2 = response2.getItems();
 
-            for (Video v : results2)
-            {
-                v.getStatistics().getViewCount();
-            }
-            Log.d("ViewCount", response2.toString());
-
             List<VideoItem> items = new ArrayList<VideoItem>();
 
                 for (int i =0;i<results.size();i++){

@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,6 +15,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.mytube.R;
+import com.mytube.helper.CONSTANTS;
 import com.mytube.helper.PlayerActivity;
 import com.mytube.helper.YoutubePlaylistConnector;
 import com.mytube.pojo.VideoItem;
@@ -27,7 +29,7 @@ import java.util.List;
  */
 public class PlaylistFragment extends Fragment {
 
-
+    private final String TAG = "PlaylistFragment";
     private ListView videosFound;
 
     private List<VideoItem> searchResults;
@@ -51,7 +53,7 @@ public class PlaylistFragment extends Fragment {
         new Thread(){
             public void run(){
                 YoutubePlaylistConnector ypc = new YoutubePlaylistConnector(getActivity());
-                searchResults = ypc.createPlaylist("SJSU-CMPE-277");
+                searchResults = ypc.getPlaylistVideos(ypc.createPlaylist(CONSTANTS.PLAYLIST_NAME));
                 handler.post(new Runnable(){
                     public void run(){
                         updateVideosFound(inflater);
@@ -63,6 +65,7 @@ public class PlaylistFragment extends Fragment {
 
     private void updateVideosFound(final LayoutInflater inflater){
         if(searchResults == null || searchResults.size() == 0){
+            Log.d(TAG, "updateVideo: null" );
             return;
         }
         ArrayAdapter<VideoItem> adapter = new ArrayAdapter<VideoItem>(getActivity(), R.layout.video_item, searchResults){
