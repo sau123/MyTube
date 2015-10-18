@@ -1,4 +1,4 @@
-package saumeel.android.com.searchyoutube;
+package saumeel.android.com.mytube;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;

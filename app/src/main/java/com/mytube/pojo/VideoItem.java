@@ -1,4 +1,4 @@
-package saumeel.android.com.searchyoutube;
+package com.mytube.pojo;
 
 public class VideoItem {
 
