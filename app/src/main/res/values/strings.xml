@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">SearchYoutube</string>
+
+    <string name="search">Search</string>
+    <string name="failed">Failed to initialize Youtube Player</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+</resources>
