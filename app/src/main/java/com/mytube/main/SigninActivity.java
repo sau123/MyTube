@@ -21,8 +21,10 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.plus.Plus;
 import com.google.android.gms.plus.model.people.Person;
+import com.google.api.services.youtube.YouTubeScopes;
 import com.mytube.R;
 import com.mytube.helper.CONSTANTS;
 
@@ -98,6 +100,9 @@ public class SigninActivity extends AppCompatActivity implements
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .addApi(Plus.API)
+                .addScope(new Scope(YouTubeScopes.YOUTUBE))
+                .addScope(new Scope(YouTubeScopes.YOUTUBE_UPLOAD))
+                .addScope(new Scope(YouTubeScopes.YOUTUBE_FORCE_SSL))
                 .addScope((Plus.SCOPE_PLUS_LOGIN))
                 .addScope(Plus.SCOPE_PLUS_PROFILE)
                 .build();
