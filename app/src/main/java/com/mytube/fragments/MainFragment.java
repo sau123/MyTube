@@ -16,6 +16,7 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.mytube.R;
 import com.mytube.helper.PlayerActivity;
 import com.mytube.helper.YoutubeConnector;
 import com.mytube.pojo.VideoItem;
@@ -23,7 +24,6 @@ import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
-import saumeel.android.com.mytube.R;
 
 /**
  * Created by shivang on 10/17/15.

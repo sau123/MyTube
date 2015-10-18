@@ -70,10 +70,10 @@
             android:id="@+id/sign_out_and_disconnect"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
             android:orientation="horizontal"
             android:paddingLeft="16dp"
             android:paddingRight="16dp"
+            android:paddingTop="16dp"
             android:visibility="gone"
             android:weightSum="2"
             tools:visibility="visible">
@@ -96,6 +96,18 @@
                 android:textColor="@android:color/white"
                 android:theme="@style/ThemeOverlay.MyDarkButton" />
         </LinearLayout>
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@color/ColorPrimaryDark"
+            android:textColor="#ffffff"
+            android:text="Continue"
+            android:id="@+id/next"
+            android:layout_alignParentBottom="true"
+            android:layout_marginBottom="16dp"
+            android:theme="@style/ThemeOverlay.MyDarkButton"
+            android:layout_centerHorizontal="true" />
 
     </RelativeLayout>
 

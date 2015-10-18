@@ -12,6 +12,7 @@ import com.google.api.services.youtube.model.SearchListResponse;
 import com.google.api.services.youtube.model.SearchResult;
 import com.google.api.services.youtube.model.Video;
 import com.google.api.services.youtube.model.VideoListResponse;
+import com.mytube.R;
 import com.mytube.pojo.VideoItem;
 
 import java.io.IOException;
@@ -19,12 +20,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
-import saumeel.android.com.mytube.R;
 
-
-/**
- * Created by Saumeel on 10/14/2015.
- */
 public class YoutubeConnector {
     private YouTube youtube;
     private YouTube.Search.List query;      // to fetch attributes other than viewCount

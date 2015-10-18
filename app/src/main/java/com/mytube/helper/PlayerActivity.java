@@ -7,8 +7,8 @@ import com.google.android.youtube.player.YouTubeBaseActivity;
 import com.google.android.youtube.player.YouTubeInitializationResult;
 import com.google.android.youtube.player.YouTubePlayer;
 import com.google.android.youtube.player.YouTubePlayerView;
+import com.mytube.R;
 
-import saumeel.android.com.mytube.R;
 
 /**
  * Created by Saumeel on 10/14/2015.

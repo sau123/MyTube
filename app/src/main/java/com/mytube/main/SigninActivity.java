@@ -13,19 +13,18 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
-import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.plus.Plus;
 import com.google.android.gms.plus.model.people.Person;
-
-import saumeel.android.com.mytube.R;
+import com.mytube.R;
+import com.mytube.helper.CONSTANTS;
 
 
 /**
@@ -37,7 +36,7 @@ public class SigninActivity extends AppCompatActivity implements
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener {
 
-    private static final String TAG = "MainActivity";
+    private static final String TAG = "SigninActivity";
 
     /* RequestCode for resolutions involving sign-in */
     private static final int RC_SIGN_IN = 1;
@@ -62,6 +61,8 @@ public class SigninActivity extends AppCompatActivity implements
     /* Should we automatically resolve ConnectionResults when possible? */
     private boolean mShouldResolve = false;
     // [END resolution_variables]
+
+    private String currentAccount;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,12 +93,13 @@ public class SigninActivity extends AppCompatActivity implements
 
         // [START create_google_api_client]
         // Build GoogleApiClient with access to basic profile
+
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .addApi(Plus.API)
-                .addScope(new Scope(Scopes.PROFILE))
-                .addScope(new Scope(Scopes.EMAIL))
+                .addScope((Plus.SCOPE_PLUS_LOGIN))
+                .addScope(Plus.SCOPE_PLUS_PROFILE)
                 .build();
         // [END create_google_api_client]
     }
@@ -105,15 +107,16 @@ public class SigninActivity extends AppCompatActivity implements
     private void updateUI(boolean isSignedIn) {
         if (isSignedIn) {
             Person currentPerson = Plus.PeopleApi.getCurrentPerson(mGoogleApiClient);
+            Log.d(TAG, currentPerson.getId());
             if (currentPerson != null) {
                 // Show signed-in user's name
                 String name = currentPerson.getDisplayName();
                 mStatus.setText(getString(R.string.signed_in_fmt, name));
-
                 // Show users' email address (which requires GET_ACCOUNTS permission)
                 if (checkAccountsPermission()) {
-                    String currentAccount = Plus.AccountApi.getAccountName(mGoogleApiClient);
+                    currentAccount = Plus.AccountApi.getAccountName(mGoogleApiClient);
                     ((TextView) findViewById(R.id.email)).setText(currentAccount);
+                    CONSTANTS.USER_ACCESS_TOKEN = currentAccount;
                 }
             } else {
                 // If getCurrentPerson returns null there is generally some error with the
@@ -179,6 +182,8 @@ public class SigninActivity extends AppCompatActivity implements
 
     private void showSignedOutUI() {
         updateUI(false);
+        Button next = (Button) findViewById(R.id.next);
+        next.setVisibility(View.INVISIBLE);
     }
 
     // [START on_start_on_stop]
@@ -215,10 +220,10 @@ public class SigninActivity extends AppCompatActivity implements
             if (resultCode != RESULT_OK) {
                 mShouldResolve = false;
             }
-
             mIsResolving = false;
             mGoogleApiClient.connect();
         }
+
     }
     // [END on_activity_result]
 
@@ -371,7 +376,15 @@ public class SigninActivity extends AppCompatActivity implements
     // [END on_disconnect_clicked]
 
     private void openMyTubePlayer(){
-        Intent newIntent = new Intent(this, MainActivity.class);
-        startActivity(newIntent);
+        Button next = (Button) findViewById(R.id.next);
+        next.setVisibility(View.VISIBLE);
+        next.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent newIntent = new Intent(SigninActivity.this, MainActivity.class);
+                startActivity(newIntent);
+            }
+        });
     }
+
 }
