@@ -26,6 +26,7 @@ public class YoutubeConnector {
     private YouTube.Search.List query;      // to fetch attributes other than viewCount
     private YouTube.Videos.List queryView; // to fetch statistics/viewCount
 
+
     public static final String KEY
             = "AIzaSyBBHbRhe57X9dCkyRvWqVV4pX_BU4MZCpA";
 
@@ -35,6 +36,10 @@ public class YoutubeConnector {
             @Override
             public void initialize(HttpRequest hr) throws IOException {}
         }).setApplicationName(content.getString(R.string.app_name)).build();
+    }
+
+
+    public List<VideoItem> search(String keywords){
 
         try{
             query = youtube.search().list("id,snippet");
@@ -50,10 +55,7 @@ public class YoutubeConnector {
         }catch(IOException e){
             Log.d("YC", "Could not initialize: " + e);
         }
-    }
 
-
-    public List<VideoItem> search(String keywords){
         Log.d("To be Searched ",keywords);
         query.setQ(keywords);
         Log.d("Saumeel",query.toString());
@@ -84,6 +86,7 @@ public class YoutubeConnector {
 
                 Log.d("Saumeel ", "Inside for loop of search of YC");
                 VideoItem item = new VideoItem();
+                Log.d("YTC","id:   "+results.get(i).toPrettyString());
                 item.setTitle(results.get(i).getSnippet().getTitle());
                 item.setDescription(results.get(i).getSnippet().getDescription());
                 item.setThumbnailURL(results.get(i).getSnippet().getThumbnails().getDefault().getUrl());

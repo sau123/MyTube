@@ -2,11 +2,20 @@ package com.mytube.pojo;
 
 public class VideoItem {
 
+    private String globalId;
     private String title;
     private String description;
     private String thumbnailURL;
     private String id;
     private String viewCount;
+
+    public String getGlobalId() {
+        return globalId;
+    }
+
+    public void setGlobalId(String globalId) {
+        this.globalId = globalId;
+    }
 
     public String getViewCount() {
         return viewCount;
@@ -57,6 +66,5 @@ public class VideoItem {
     public void setThumbnailURL(String thumbnail) {
         this.thumbnailURL = thumbnail;
     }
-
 
 }

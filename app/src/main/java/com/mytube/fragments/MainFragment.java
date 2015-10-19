@@ -12,13 +12,17 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.mytube.R;
 import com.mytube.helper.PlayerActivity;
+import com.mytube.helper.StarTracker;
 import com.mytube.helper.YoutubeConnector;
+import com.mytube.helper.YoutubePlaylistConnector;
 import com.mytube.pojo.VideoItem;
 import com.squareup.picasso.Picasso;
 
@@ -56,6 +60,7 @@ public class MainFragment extends Fragment {
             }
         });
         addClickListener();
+
         return v;
     }
 
@@ -74,6 +79,24 @@ public class MainFragment extends Fragment {
         }.start();
     }
 
+    private void sendToPlaylist(final String selectedVideoId){
+        new Thread(){
+            public void run(){
+                YoutubePlaylistConnector yc = new YoutubePlaylistConnector(getActivity());
+                yc.addToPlaylist(selectedVideoId);
+            }
+        }.start();
+    }
+
+    private void removeFromPlaylist(final String selectedVideoId){
+        new Thread(){
+            public void run(){
+                YoutubePlaylistConnector yc = new YoutubePlaylistConnector(getActivity());
+                yc.removeFromPlaylist(selectedVideoId);
+            }
+        }.start();
+    }
+
     private void updateVideosFound(final LayoutInflater inflater){
         ArrayAdapter<VideoItem> adapter = new ArrayAdapter<VideoItem>(getActivity(), R.layout.video_item, searchResults){
 
@@ -83,11 +106,13 @@ public class MainFragment extends Fragment {
                     convertView = inflater.inflate(R.layout.video_item, parent, false);
                 }
 
+                final String selectedVideoId = searchResults.get(position).getId();
                 ImageView thumbnail = (ImageView)convertView.findViewById(R.id.video_thumbnail);
                 TextView title = (TextView)convertView.findViewById(R.id.video_title);
                 TextView description = (TextView)convertView.findViewById(R.id.video_description);
                 TextView date = (TextView)convertView.findViewById(R.id.video_publishedAt);
                 TextView viewCount = (TextView)convertView.findViewById(R.id.video_viewCount);
+                final ImageButton unfilledStarIcon = (ImageButton)convertView.findViewById(R.id.star_icon);
 
                 VideoItem searchResult = searchResults.get(position);
 
@@ -96,6 +121,30 @@ public class MainFragment extends Fragment {
                 description.setText(searchResult.getDescription());
                 date.setText("Published at : "+searchResult.getDate());
                 viewCount.setText(searchResult.getViewCount()+" views");
+
+                final StarTracker s = new StarTracker(getContext()); // keep track of star Icon ! // see if you keep it as an attribute in VideoItem
+
+                unfilledStarIcon.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View arg0) {
+                        if (s.getImageResource() == R.mipmap.ic_star_unfilled) {
+                            s.setImageResource(R.mipmap.ic_star_filled);
+                            unfilledStarIcon.setImageResource(R.mipmap.ic_star_filled);
+                            Toast.makeText(getActivity(),
+                                    "Added to SJSU-CMPE 277 favorites list !", Toast.LENGTH_SHORT).show();
+                            sendToPlaylist(selectedVideoId);
+                        } else {
+                            s.setImageResource(R.mipmap.ic_star_unfilled);
+                            unfilledStarIcon.setImageResource(R.mipmap.ic_star_unfilled);
+                            removeFromPlaylist(selectedVideoId);
+                            Toast.makeText(getActivity(),
+                                    "Removed from the SJSU-CMPE 277 favorites list !", Toast.LENGTH_SHORT).show();
+
+                        }
+
+                    }
+
+                });
 
                 return convertView;
             }

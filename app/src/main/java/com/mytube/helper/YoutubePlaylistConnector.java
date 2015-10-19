@@ -13,8 +13,10 @@ import com.google.api.services.youtube.YouTube;
 import com.google.api.services.youtube.model.Playlist;
 import com.google.api.services.youtube.model.PlaylistItem;
 import com.google.api.services.youtube.model.PlaylistItemListResponse;
+import com.google.api.services.youtube.model.PlaylistItemSnippet;
 import com.google.api.services.youtube.model.PlaylistListResponse;
 import com.google.api.services.youtube.model.PlaylistSnippet;
+import com.google.api.services.youtube.model.ResourceId;
 import com.google.api.services.youtube.model.Video;
 import com.google.api.services.youtube.model.VideoListResponse;
 import com.mytube.R;
@@ -35,8 +37,10 @@ public class YoutubePlaylistConnector {
     private YouTube.Playlists.Insert queryCreatePlaylist;
     private YouTube.PlaylistItems.List queryPlaylistVideos;
     private YouTube.Videos.List queryView; // to fetch statistics/viewCount
+    private YouTube.PlaylistItems.Insert queryInsert;
+    private YouTube.PlaylistItems.Delete queryDelete;
     public static final String KEY = CONSTANTS.YOUTUBE_API_KEY;
-    public static String playlistId;
+
 
     public YoutubePlaylistConnector(Context context) {
 
@@ -65,9 +69,8 @@ public class YoutubePlaylistConnector {
             for(Playlist playlist : playlists){
                 Log.d(TAG, playlist.getSnippet().getTitle());
                 if(playlist.getSnippet().getTitle().equalsIgnoreCase(playlistName)) {
-                    playlistId = playlist.getId();
-                    Log.d(TAG, "PlaylistID: " + playlistId);
-                    return playlistId;
+                    CONSTANTS.PLAYLIST_ID = playlist.getId();
+                    return CONSTANTS.PLAYLIST_ID;
                 }
 
             }
@@ -96,11 +99,11 @@ public class YoutubePlaylistConnector {
             queryCreatePlaylist.setKey(KEY);
             queryCreatePlaylist.setFields("id,snippet");
 
-            Log.d(TAG,queryCreatePlaylist.toString());
+            Log.d(TAG, queryCreatePlaylist.toString());
             Playlist response = queryCreatePlaylist.execute();
-            playlistId = response.getId();
+            CONSTANTS.PLAYLIST_ID = response.getId();
             Log.d("Query Result ", response.toString());
-            return playlistId;
+            return CONSTANTS.PLAYLIST_ID;
         } catch (UserRecoverableAuthIOException e){
             Log.d(TAG, e.getIntent().getPackage());
         } catch (IOException e) {
@@ -110,9 +113,41 @@ public class YoutubePlaylistConnector {
         return null;
     }
 
+    public void addToPlaylist(String videoId){
+        PlaylistItem pli = new PlaylistItem();
+
+        pli.setSnippet(new PlaylistItemSnippet()
+                    .setResourceId(new ResourceId()
+                                    .setVideoId(videoId)
+                                    .setKind("youtube#video"))
+                    .setPlaylistId(CONSTANTS.PLAYLIST_ID));
+        try {
+            queryInsert = youtube.playlistItems().insert("snippet",pli);
+            queryInsert.setKey(KEY);
+            Log.d("YPC","video id "+ videoId + "  playlistid "+CONSTANTS.PLAYLIST_ID);
+            PlaylistItem response = queryInsert.execute();
+            Log.d("YTC", "addto playlist: "+response.toPrettyString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void removeFromPlaylist(String videoId){
+
+        try {
+            queryDelete = youtube.playlistItems().delete("id");
+            queryDelete.setKey(KEY);
+            queryDelete.execute();
+            Log.d("YTC", "remove from playlist");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public List<VideoItem> getPlaylistVideos(String pId){
 
         try {
+            CONSTANTS.PLAYLIST_ID = pId;
             queryPlaylistVideos = youtube.playlistItems().list("id,snippet");
             queryPlaylistVideos.setKey(KEY);
             queryPlaylistVideos.setPlaylistId(pId);
@@ -144,10 +179,6 @@ public class YoutubePlaylistConnector {
                 item.setThumbnailURL(results.get(i).getSnippet().getThumbnails().getDefault().getUrl());
                 item.setId(results.get(i).getSnippet().getResourceId().getVideoId());
                 item.setViewCount(results2.get(i).getStatistics().getViewCount().toString());    // viewCount converted to String.
-
-                // item.setViewCount(results2);
-                /* start of logic to convert to date format from ISO 8601 format */
-                // First parse string in pattern "yyyy-MM-dd'T'HH:mm:ss'Z'" to date object.
 
                 String dateString1 = results.get(i).getSnippet().getPublishedAt().toString();
 
