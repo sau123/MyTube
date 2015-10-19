@@ -6,10 +6,15 @@ import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -21,6 +26,7 @@ import com.mytube.helper.YoutubePlaylistConnector;
 import com.mytube.pojo.VideoItem;
 import com.squareup.picasso.Picasso;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -34,11 +40,13 @@ public class PlaylistFragment extends Fragment {
 
     private List<VideoItem> searchResults;
     private Handler handler;
+    final private ArrayList<String> videosSelected = new ArrayList<>();
+    MenuItem fav;
 
     @Override
     public View onCreateView(final LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_playlist,container,false);
-
+        setHasOptionsMenu(true);
         videosFound = (ListView)v.findViewById(R.id.videos_found);
 
         handler = new Handler();
@@ -48,8 +56,38 @@ public class PlaylistFragment extends Fragment {
         return v;
     }
 
-    private void searchOnYoutube(final LayoutInflater inflater){
+    @Override
+    public void onResume() {
+        super.onResume();
+        handler.post(new Runnable() {
+            public void run() {
+                searchOnYoutube(getActivity().getLayoutInflater());
+            }
+        });
+    }
 
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        fav = menu.add("Delete");
+        fav.setIcon(R.mipmap.ic_delete);
+        Log.d(TAG, "onCreateOPtionMenu");
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        if(item.toString().equalsIgnoreCase("Delete")){
+            for(String video : videosSelected){
+                Log.d(TAG, "delete: " + video);
+                removeFromPlaylist(video);
+            }
+            videosSelected.clear();
+        }
+
+        return false;
+    }
+    private void searchOnYoutube(final LayoutInflater inflater){
         new Thread(){
             public void run(){
                 YoutubePlaylistConnector ypc = new YoutubePlaylistConnector(getActivity());
@@ -63,9 +101,25 @@ public class PlaylistFragment extends Fragment {
         }.start();
     }
 
+    private void removeFromPlaylist(final String selectedVideoId){
+        new Thread(){
+            public void run(){
+                YoutubePlaylistConnector yc = new YoutubePlaylistConnector(getActivity());
+                yc.removeFromPlaylist(selectedVideoId);
+
+                handler.post(new Runnable() {
+                    public void run() {
+                        searchOnYoutube(getActivity().getLayoutInflater());
+                    }
+                });
+            }
+        }.start();
+    }
+
     private void updateVideosFound(final LayoutInflater inflater){
         if(searchResults == null || searchResults.size() == 0){
             Log.d(TAG, "updateVideo: null" );
+            videosFound.setAdapter(null);
             return;
         }
         ArrayAdapter<VideoItem> adapter = new ArrayAdapter<VideoItem>(getActivity(), R.layout.video_item, searchResults){
@@ -73,12 +127,10 @@ public class PlaylistFragment extends Fragment {
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
                 if(convertView == null){
-                    convertView = inflater.inflate(R.layout.video_item, parent, false);
+                    convertView = inflater.inflate(R.layout.playlist_video_item, parent, false);
                 }
-
                 ImageView thumbnail = (ImageView)convertView.findViewById(R.id.video_thumbnail);
                 TextView title = (TextView)convertView.findViewById(R.id.video_title);
-                TextView description = (TextView)convertView.findViewById(R.id.video_description);
                 TextView date = (TextView)convertView.findViewById(R.id.video_publishedAt);
                 TextView viewCount = (TextView)convertView.findViewById(R.id.video_viewCount);
 
@@ -86,9 +138,20 @@ public class PlaylistFragment extends Fragment {
 
                 Picasso.with(getActivity()).load(searchResult.getThumbnailURL()).into(thumbnail);
                 title.setText(searchResult.getTitle());
-                description.setText(searchResult.getDescription());
                 date.setText("Published at : "+searchResult.getDate());
                 viewCount.setText(searchResult.getViewCount()+" views");
+                final String playListVideoId = searchResult.getGlobalId();
+                CheckBox cb = (CheckBox) convertView.findViewById(R.id.checkbox);
+                cb.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                      @Override
+                      public void onCheckedChanged(CompoundButton buttonView,boolean isChecked) {
+                            if(isChecked)
+                                videosSelected.add(playListVideoId);
+                            else
+                                videosSelected.remove(playListVideoId);
+                      }
+                  }
+                );
 
                 return convertView;
             }

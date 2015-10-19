@@ -137,6 +137,7 @@ public class YoutubePlaylistConnector {
         try {
             queryDelete = youtube.playlistItems().delete("id");
             queryDelete.setKey(KEY);
+            queryDelete.setId(videoId);
             queryDelete.execute();
             Log.d("YTC", "remove from playlist");
         } catch (IOException e) {
@@ -158,8 +159,16 @@ public class YoutubePlaylistConnector {
 
             PlaylistItemListResponse response = queryPlaylistVideos.execute();
             // get view count for all videos in playlist
+
+            if(response == null || response.size() == 0)
+                return null;
+
             String videoIds = "";
             List<PlaylistItem> results = response.getItems();
+
+            if(results == null || results.size() == 0)
+                return null;
+
             for (PlaylistItem r :results){
                 videoIds+=r.getSnippet().getResourceId().getVideoId()+",";
             }
@@ -179,7 +188,7 @@ public class YoutubePlaylistConnector {
                 item.setThumbnailURL(results.get(i).getSnippet().getThumbnails().getDefault().getUrl());
                 item.setId(results.get(i).getSnippet().getResourceId().getVideoId());
                 item.setViewCount(results2.get(i).getStatistics().getViewCount().toString());    // viewCount converted to String.
-
+                item.setGlobalId(results.get(i).getId());
                 String dateString1 = results.get(i).getSnippet().getPublishedAt().toString();
 
                 // Then format date object to string in pattern "MM/dd/yy 'at' h:mma".

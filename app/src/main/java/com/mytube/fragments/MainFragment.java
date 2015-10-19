@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -84,6 +85,9 @@ public class MainFragment extends Fragment {
             public void run(){
                 YoutubePlaylistConnector yc = new YoutubePlaylistConnector(getActivity());
                 yc.addToPlaylist(selectedVideoId);
+                FragmentManager fm = getFragmentManager();
+                PlaylistFragment pf = (PlaylistFragment) fm.getFragments().get(1);
+                pf.onResume();
             }
         }.start();
     }

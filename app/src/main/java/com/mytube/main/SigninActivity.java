@@ -120,7 +120,7 @@ public class SigninActivity extends AppCompatActivity implements
     private void updateUI(boolean isSignedIn) {
         if (isSignedIn) {
             Person currentPerson = Plus.PeopleApi.getCurrentPerson(mGoogleApiClient);
-            Log.d(TAG, currentPerson.getId());
+
             if (currentPerson != null) {
                 // Show signed-in user's name
                 String name = currentPerson.getDisplayName();
